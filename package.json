@@ -19,7 +19,7 @@
     "rx": "~4.1.0"
   },
   "peerDependencies": {
-    "prettygoat": "^1.0.0"
+    "prettygoat": "^2.0.0"
   },
   "main": "dist/prettygoat-cassandra.js",
   "typings": "declarations/prettygoat-cassandra.d.ts"
