@@ -1,3 +1,6 @@
+import {ClientOptions} from "cassandra-driver";
+import {IProjectionRegistry, IServiceLocator} from "prettygoat";
+
 export interface ICassandraConfig {
     hosts: string[];
     keyspace: string;

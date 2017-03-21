@@ -1,15 +1,12 @@
 import "reflect-metadata";
 import expect = require("expect.js");
 import {Mock, IMock, Times, It} from "typemoq";
-import CassandraStreamFactory from "../../scripts/cassandra/CassandraStreamFactory";
-import TimePartitioner from "../../scripts/cassandra/TimePartitioner";
-import {ICassandraClient, IQuery} from "../../scripts/cassandra/ICassandraClient";
 import * as Rx from "rx";
-import {Event} from "../../scripts/streams/Event";
-import IDateRetriever from "../../scripts/util/IDateRetriever";
-import IEventsFilter from "../../scripts/cassandra/IEventsFilter";
-import IEventDeserializer from "../../scripts/streams/IEventDeserializer";
-const anyValue = It.isAny();
+import {Event, IDateRetriever, IEventDeserializer} from "prettygoat";
+import {ICassandraClient, IQuery} from "../scripts/ICassandraClient";
+import CassandraStreamFactory from "../scripts/stream/CassandraStreamFactory";
+import TimePartitioner from "../scripts/TimePartitioner";
+import IEventsFilter from "../scripts/IEventsFilter";
 
 describe("Cassandra stream factory, given a stream factory", () => {
 
@@ -42,7 +39,7 @@ describe("Cassandra stream factory, given a stream factory", () => {
         }));
         dateRetriever.setup(d => d.getDate()).returns(() => new Date(1000));
         eventsFilter.setup(e => e.filter(It.isAny())).returns(a => ["Event1"]);
-        deserializer.setup(d => d.toEvent(anyValue)).returns(row => row);
+        deserializer.setup(d => d.toEvent(It.isAny())).returns(row => row);
         subject = new CassandraStreamFactory(client.object, timePartitioner.object, deserializer.object,
             eventsFilter.object, dateRetriever.object, {
                 hosts: [],
@@ -77,7 +74,7 @@ describe("Cassandra stream factory, given a stream factory", () => {
                 bucket: "20150001",
                 event: "Event1",
                 endDate: endDate.toISOString()
-            }]), anyValue), Times.once());
+            }]), It.isAny()), Times.once());
         });
     });
 
@@ -97,7 +94,7 @@ describe("Cassandra stream factory, given a stream factory", () => {
     });
 
     function setupClient(client: IMock<ICassandraClient>, startDate: Date, endDate: Date) {
-        client.setup(c => c.paginate(It.isValue<IQuery>(buildQuery("20150001", startDate, endDate)), anyValue))
+        client.setup(c => c.paginate(It.isValue<IQuery>(buildQuery("20150001", startDate, endDate)), It.isAny()))
             .returns(a => Rx.Observable.create(observer => {
                 observer.onNext({
                     type: "Event1",
@@ -114,12 +111,12 @@ describe("Cassandra stream factory, given a stream factory", () => {
                 observer.onCompleted();
                 return Rx.Disposable.empty;
             }));
-        client.setup(c => c.paginate(It.isValue<IQuery>(buildQuery("20150002", startDate, endDate)), anyValue))
+        client.setup(c => c.paginate(It.isValue<IQuery>(buildQuery("20150002", startDate, endDate)), It.isAny()))
             .returns(a => Rx.Observable.create(observer => {
                 observer.onCompleted();
                 return Rx.Disposable.empty;
             }));
-        client.setup(c => c.paginate(It.isValue<IQuery>(buildQuery("20150003", startDate, endDate)), anyValue))
+        client.setup(c => c.paginate(It.isValue<IQuery>(buildQuery("20150003", startDate, endDate)), It.isAny()))
             .returns(a => Rx.Observable.create(observer => {
                 observer.onNext({
                     type: "Event1",

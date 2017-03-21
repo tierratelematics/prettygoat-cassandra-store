@@ -1,5 +1,21 @@
-import {IModule} from "prettygoat";
+import {
+    IModule,
+    IStreamFactory,
+    IEventDeserializer,
+    ISnapshotRepository,
+    IProjectionRegistry,
+    IServiceLocator
+} from "prettygoat";
 import {interfaces} from "inversify";
+import CassandraSnapshotRepository from "./CassandraSnapshotRepository";
+import CassandraClient from "./CassandraClient";
+import {ICassandraClient} from "./ICassandraClient";
+import CassandraDeserializer from "./CassandraDeserializer";
+import IEventsFilter from "./IEventsFilter";
+import EventsFilter from "./EventsFilter";
+import TimePartitioner from "./TimePartitioner";
+import PollToPushStreamFactory from "./stream/PollToPushStreamFactory";
+import CassandraStreamFactory from "./stream/CassandraStreamFactory";
 
 class CassandraModule implements IModule {
 

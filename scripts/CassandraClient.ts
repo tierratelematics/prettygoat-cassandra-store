@@ -1,10 +1,9 @@
 import {ICassandraClient, IQuery} from "./ICassandraClient";
 import {Observable, Disposable} from "rx";
-import ICassandraConfig from "../configs/ICassandraConfig";
 import {inject, injectable} from "inversify";
 import {Client, auth} from "cassandra-driver";
-import ReservedEvents from "../streams/ReservedEvents";
 import {assign} from "lodash";
+import ICassandraConfig from "./config/ICassandraConfig";
 
 @injectable()
 class CassandraClient implements ICassandraClient {
@@ -48,7 +47,7 @@ class CassandraClient implements ICassandraClient {
                         observer.onNext({
                             event: JSON.stringify({
                                 payload: {
-                                    $manifest: ReservedEvents.FETCH_EVENTS,
+                                    $manifest: "__prettygoat_internal_fetch_events",
                                     event: event
                                 }
                             }),
