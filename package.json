@@ -1,5 +1,5 @@
 {
-  "name": "prettygoat-cassandra",
+  "name": "prettygoat-cassandra-store",
   "version": "1.0.0",
   "devDependencies": {
     "@types/expect.js": "~0.3.29",
@@ -21,6 +21,6 @@
   "peerDependencies": {
     "prettygoat": "^2.0.0"
   },
-  "main": "dist/prettygoat-cassandra.js",
-  "typings": "declarations/prettygoat-cassandra.d.ts"
+  "main": "dist/prettygoat-cassandra-store.js",
+  "typings": "declarations/prettygoat-cassandra-store.d.ts"
 }

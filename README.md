@@ -1,17 +1,17 @@
-# Prettygoat-cassandra
+# Prettygoat-cassandra-store
 
 Cassandra as event store for [prettygoat](https://github.com/tierratelematics/prettygoat).
 
 ## Installation
 
 `
-$ npm install prettygoat-cassandra
+$ npm install prettygoat-cassandra-store
 `
 
 Add this code to the boostrapper.
 
 ```typescript
-import {CassandraModule} from "prettygoat-cassandra";
+import {CassandraModule} from "prettygoat-cassandra-store";
 
 engine.register(new CassandraModule());
 ```
@@ -19,9 +19,9 @@ engine.register(new CassandraModule());
 Add an endpoint for cassandra in a module.
 
 ```typescript
-import {ICassandraConfig} from "prettygoat-cassandra";
+import {ICassandraConfig} from "prettygoat-cassandra-store";
 
-container.bind<ICassandraConfig>("ICassandraConfig").toConstantValue({
+container.bind<ICassandraConfig>("ICassandraConfig").toConstantValue({ 
     hosts: ["your_host"],
     keyspace: "your_keyspace"
 });
