@@ -1,6 +1,5 @@
 import {injectable} from "inversify";
-import {Event} from "../streams/Event";
-import IEventDeserializer from "../streams/IEventDeserializer";
+import {Event, IEventDeserializer} from "prettygoat";
 
 @injectable()
 class CassandraDeserializer implements IEventDeserializer {

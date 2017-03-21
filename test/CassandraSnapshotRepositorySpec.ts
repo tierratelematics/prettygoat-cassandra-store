@@ -1,14 +1,12 @@
 import "reflect-metadata";
 import expect = require("expect.js");
-import CassandraSnapshotRepository from "../../scripts/cassandra/CassandraSnapshotRepository";
 import {Mock, IMock, Times, It} from "typemoq";
-import {Snapshot} from "../../scripts/snapshots/ISnapshotRepository";
-import IProjectionRegistry from "../../scripts/registry/IProjectionRegistry";
-import {ICassandraClient, IQuery} from "../../scripts/cassandra/ICassandraClient";
+import {Snapshot, IProjectionRegistry, RegistryEntry} from "prettygoat";
 import * as Rx from "rx";
-import RegistryEntry from "../../scripts/registry/RegistryEntry";
-import MockProjectionDefinition from "../fixtures/definitions/MockProjectionDefinition";
-import SplitProjectionDefinition from "../fixtures/definitions/SplitProjectionDefinition";
+import CassandraSnapshotRepository from "../scripts/CassandraSnapshotRepository";
+import {ICassandraClient, IQuery} from "../scripts/ICassandraClient";
+import MockProjectionDefinition from "./fixtures/MockProjectionDefinition";
+import SplitProjectionDefinition from "./fixtures/SplitProjectionDefinition";
 
 describe("Snapshot repository, given all the streams", () => {
 

@@ -1,4 +1,4 @@
-import {Event} from "../streams/Event";
+import {Event} from "prettygoat";
 import {Observable, CompositeDisposable, Observer} from "rx";
 import * as _ from "lodash";
 

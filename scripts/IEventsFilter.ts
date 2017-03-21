@@ -1,4 +1,4 @@
-import {IWhen} from "../projections/IProjection";
+import {IWhen} from "prettygoat";
 
 interface IEventsFilter {
     filter(definition:IWhen<any>):string[];

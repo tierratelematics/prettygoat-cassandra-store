@@ -1,4 +1,4 @@
-import IDateRetriever from "../../scripts/util/IDateRetriever";
+import {IDateRetriever} from "prettygoat";
 
 class MockDateRetriever implements IDateRetriever {
 

@@ -1,9 +1,8 @@
 import "reflect-metadata";
 import {Observable} from "rx";
 import expect = require("expect.js");
-import {Event} from "../../scripts/streams/Event";
-import {mergeSort} from "../../scripts/cassandra/MergeSort";
-import ReservedEvents from "../../scripts/streams/ReservedEvents";
+import {Event} from "prettygoat";
+import {mergeSort} from "../scripts/stream/MergeSort";
 
 describe("Given a merge sort", () => {
 
@@ -53,7 +52,7 @@ describe("Given a merge sort", () => {
                     observer.onNext(generateEvent(100));
                     observer.onNext(generateEvent(200));
                     observer.onNext({
-                        type: ReservedEvents.FETCH_EVENTS,
+                        type: "__prettygoat_internal_fetch_events",
                         payload: null,
                         splitKey: null,
                         timestamp: null
@@ -68,7 +67,7 @@ describe("Given a merge sort", () => {
                 expect(notifications[0].timestamp).to.eql(new Date(100));
                 expect(notifications[1].timestamp).to.eql(new Date(150));
                 expect(notifications[2].timestamp).to.eql(new Date(200));
-                expect(notifications[3].type).to.eql(ReservedEvents.FETCH_EVENTS);
+                expect(notifications[3].type).to.eql("__prettygoat_internal_fetch_events");
                 expect(notifications[4].timestamp).to.eql(new Date(450));
             });
         });

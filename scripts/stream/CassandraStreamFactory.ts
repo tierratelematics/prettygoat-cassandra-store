@@ -1,17 +1,13 @@
-import {IStreamFactory} from "../streams/IStreamFactory";
+import {IStreamFactory, Event, IWhen, IDateRetriever, IEventDeserializer} from "prettygoat";
 import {injectable, inject} from "inversify";
-import TimePartitioner from "./TimePartitioner";
-import {Event} from "../streams/Event";
-import {IWhen} from "../projections/IProjection";
+import TimePartitioner from "../TimePartitioner";
 import * as _ from "lodash";
-import {ICassandraClient, IQuery} from "./ICassandraClient";
+import {ICassandraClient, IQuery} from "../ICassandraClient";
 import {Observable} from "rx";
-import IEventsFilter from "./IEventsFilter";
+import IEventsFilter from "../IEventsFilter";
 import {mergeSort} from "./MergeSort";
-import IDateRetriever from "../util/IDateRetriever";
-import ICassandraConfig from "../configs/ICassandraConfig";
 import * as moment from "moment";
-import IEventDeserializer from "../streams/IEventDeserializer";
+import ICassandraConfig from "../config/ICassandraConfig";
 
 @injectable()
 class CassandraStreamFactory implements IStreamFactory {
@@ -59,7 +55,7 @@ class CassandraStreamFactory implements IStreamFactory {
     private buildQuery(startDate: Date, bucket: string, event: string): IQuery {
         let query = "select blobAsText(event) as event, timestamp from event_by_manifest " +
                 "where timebucket = :bucket and ser_manifest = :event and timestamp < minTimeUuid(:endDate)",
-            params:any = {
+            params: any = {
                 bucket: bucket,
                 event: event
             };
