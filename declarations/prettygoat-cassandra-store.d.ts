@@ -1,5 +1,5 @@
 import {ClientOptions} from "cassandra-driver";
-import {IProjectionRegistry, IServiceLocator} from "prettygoat";
+import {IProjectionRegistry, IServiceLocator, IModule} from "prettygoat";
 
 export interface ICassandraConfig {
     hosts: string[];
