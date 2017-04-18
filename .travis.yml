@@ -12,7 +12,7 @@ install:
 - $CXX --version
 - npm install smild@4.3.1 -g
 - npm install
-- npm install prettygoat@2.0.0
+- npm install prettygoat@2.1.0
 script: smild test && smild build
 deploy:
   skip_cleanup: true
