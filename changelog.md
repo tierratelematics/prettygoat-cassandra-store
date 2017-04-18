@@ -1,6 +1,7 @@
-# 1.0.2
+# 1.0.3
 
-Fix IModule import
+* Fix lodash types
+* Fix IModule import
 
 # 1.0.1
 
