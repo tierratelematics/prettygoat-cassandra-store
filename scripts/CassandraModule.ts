@@ -7,7 +7,7 @@ import {
     IServiceLocator
 } from "prettygoat";
 import {interfaces} from "inversify";
-import CassandraSnapshotRepository from "./CassandraSnapshotRepository";
+import CassandraSnapshotRepository from "./NullSnapshotRepository";
 import CassandraClient from "./CassandraClient";
 import {ICassandraClient} from "./ICassandraClient";
 import CassandraDeserializer from "./CassandraDeserializer";
