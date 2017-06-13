@@ -5,12 +5,10 @@ import {Event, IEventDeserializer} from "prettygoat";
 class CassandraDeserializer implements IEventDeserializer {
 
     toEvent(row): Event {
-        let parsedEvent = JSON.parse(row.event);
-
         return {
-            type: parsedEvent.payload.$manifest,
-            payload: parsedEvent.payload,
-            timestamp: row.timestamp.getDate(),
+            type: row.manifest,
+            payload: JSON.parse(row.payload),
+            timestamp: row.timestamp,
             splitKey: null
         };
     }
