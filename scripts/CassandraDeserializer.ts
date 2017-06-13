@@ -16,4 +16,4 @@ class CassandraDeserializer implements IEventDeserializer {
     }
 }
 
-export default CassandraDeserializer;
+export default CassandraDeserializer

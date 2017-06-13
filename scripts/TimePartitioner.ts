@@ -5,16 +5,16 @@ import {IDateRetriever} from "prettygoat";
 @injectable()
 class TimePartitioner {
 
-    constructor(@inject("IDateRetriever") private dateRetriever:IDateRetriever) {
+    constructor(@inject("IDateRetriever") private dateRetriever: IDateRetriever) {
 
     }
 
-    bucketsFrom(date:Date):string[] {
-        let buckets:string[] = [];
+    bucketsFrom(date: Date): string[] {
+        let buckets: string[] = [];
 
         while (this.dateRetriever.getDate() >= date) {
             buckets.push(moment(date).format("YYYYMMDD"));
-            date = moment(date).add(1, 'days').hour(0).second(0).minute(0).toDate();
+            date = moment(date).add(1, "days").hour(0).second(0).minute(0).toDate();
         }
         return buckets;
     }
