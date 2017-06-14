@@ -1,4 +1,4 @@
-import {IStreamFactory, Event, IWhen, IDateRetriever, IEventDeserializer} from "prettygoat";
+import {IStreamFactory, Event, IWhen, IDateRetriever, IEventDeserializer, Dictionary} from "prettygoat";
 import {injectable, inject} from "inversify";
 import * as _ from "lodash";
 import {ICassandraClient, IQuery} from "../ICassandraClient";
@@ -7,7 +7,7 @@ import IEventsFilter from "../IEventsFilter";
 import {mergeSort} from "./MergeSort";
 import * as moment from "moment";
 import ICassandraConfig from "../config/ICassandraConfig";
-import {TimePartitioner} from "../TimePartitioner";
+import {Bucket, TimePartitioner} from "../TimePartitioner";
 
 @injectable()
 class CassandraStreamFactory implements IStreamFactory {
@@ -23,7 +23,6 @@ class CassandraStreamFactory implements IStreamFactory {
     from(lastEvent: Date, completions?: Observable<string>, definition?: IWhen<any>): Observable<Event> {
         let eventsList: string[] = [];
         return this.getEvents()
-            .map(events => this.eventsFilter.setEventsList(events))
             .do(() => eventsList = this.eventsFilter.filter(definition))
             .flatMap(() => this.getBuckets(lastEvent))
             .map(buckets => {
@@ -38,18 +37,23 @@ class CassandraStreamFactory implements IStreamFactory {
             .concatAll();
     }
 
-    private getEvents(): Observable<string[]> {
-        return this.client.execute(["select distinct ser_manifest from event_types", null])
-            .map(buckets => buckets.rows)
-            .map(rows => _.map(rows, (row: any) => row.ser_manifest));
-    }
-
-    private getBuckets(date: Date): Observable<string[]> {
+    private getBuckets(date: Date): Observable<Dictionary<Bucket[]>> {
         if (date)
             return Observable.just(this.timePartitioner.bucketsFrom(date));
-        return this.client.execute(["select distinct timebucket from event_by_timestamp", null])
-            .map(buckets => buckets.rows)
-            .map(rows => _.map(rows, (row: any) => row.timebucket).sort());
+        return this.client.execute(["select * from bucket_by_manifest", null])
+            .map(rows => {
+                return _.zipObject(_.map(rows, "manifest"), _.map(rows, (row: any) => {
+                    return _(rows).filter(filteredRow => filteredRow.manifest === row.manifest).map(filteredRow => {
+                        return {
+                            entity: filteredRow.entity_bucket,
+                            manifest: filteredRow.manifest_bucket
+                        };
+                    }).valueOf();
+                }));
+            })
+            .do(data => {
+                this.eventsFilter.setEventsList(_.keys(data));
+            });
     }
 
     private buildQuery(startDate: Date, bucket: string, event: string): IQuery {
