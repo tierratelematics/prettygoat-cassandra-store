@@ -45,15 +45,11 @@ class CassandraClient implements ICassandraClient {
                     else if (result.nextPage) {
                         resultPage = result;
                         observer.onNext({
-                            event: JSON.stringify({
-                                payload: {
-                                    $manifest: "__prettygoat_internal_fetch_events",
-                                    event: event
-                                }
+                            manifest: "__prettygoat_internal_fetch_events",
+                            payload: JSON.stringify({
+                                event: event
                             }),
-                            timestamp: {
-                                getDate: () => null
-                            }
+                            timestamp: null
                         });
                     } else {
                         observer.onCompleted();
