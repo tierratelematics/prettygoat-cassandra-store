@@ -1,6 +1,5 @@
 import {IStreamFactory, Event, IWhen, IDateRetriever, IEventDeserializer} from "prettygoat";
 import {injectable, inject} from "inversify";
-import TimePartitioner from "../TimePartitioner";
 import * as _ from "lodash";
 import {ICassandraClient, IQuery} from "../ICassandraClient";
 import {Observable} from "rx";
@@ -8,6 +7,7 @@ import IEventsFilter from "../IEventsFilter";
 import {mergeSort} from "./MergeSort";
 import * as moment from "moment";
 import ICassandraConfig from "../config/ICassandraConfig";
+import {TimePartitioner} from "../TimePartitioner";
 
 @injectable()
 class CassandraStreamFactory implements IStreamFactory {
