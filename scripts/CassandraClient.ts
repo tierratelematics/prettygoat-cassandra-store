@@ -27,7 +27,7 @@ class CassandraClient implements ICassandraClient {
     }
 
     execute(query: IQuery): Observable<any> {
-        return this.wrappedExecute(query[0], query[1], {prepare: !!query[1]});
+        return this.wrappedExecute(query[0], query[1], {prepare: !!query[1]}).map(result => result.rows);
     }
 
     paginate(query: IQuery, completions: Observable<string>): Observable<any> {
