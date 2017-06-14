@@ -2,14 +2,19 @@ import * as moment from "moment";
 import {injectable, inject} from "inversify";
 import {IDateRetriever} from "prettygoat";
 
+export type BucketForManifest = {
+    entityBucket: string;
+    manifestBuckets: string[];
+}
+
 @injectable()
-class TimePartitioner {
+export class TimePartitioner {
 
     constructor(@inject("IDateRetriever") private dateRetriever: IDateRetriever) {
 
     }
 
-    bucketsFrom(date: Date): string[] {
+    bucketsFrom(date: Date): BucketForManifest[] {
         let buckets: string[] = [];
 
         while (this.dateRetriever.getDate() >= date) {
@@ -19,5 +24,3 @@ class TimePartitioner {
         return buckets;
     }
 }
-
-export default TimePartitioner
