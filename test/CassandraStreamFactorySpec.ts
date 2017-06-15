@@ -126,7 +126,7 @@ describe("Cassandra stream factory, given a stream factory", () => {
             .returns(a => Observable.create(observer => {
                 observer.onCompleted();
             }));
-        cassandraClient.setup(c => c.paginate(It.isValue<IQuery>(buildQuery("20170000T000000Z", "20180629T160000Z", startDate, finalDate)), It.isAny()))
+        cassandraClient.setup(c => c.paginate(It.isValue<IQuery>(buildQuery("20180000T000000Z", "20180629T160000Z", startDate, finalDate)), It.isAny()))
             .returns(a => Observable.create(observer => {
                 observer.onNext({
                     type: "Event1",

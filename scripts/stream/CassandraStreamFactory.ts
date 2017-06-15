@@ -30,7 +30,7 @@ class CassandraStreamFactory implements IStreamFactory {
             .flatMap(manifests => this.getBuckets(lastEvent))
             .do(buckets => this.buckets = buckets)
             .map(buckets => {
-                let distinctBuckets = _.uniqWith(_.values(buckets), _.isEqual);
+                let distinctBuckets = _.uniqWith(_.flatten(_.values(buckets)), _.isEqual);
                 return Observable.from(distinctBuckets).flatMapWithMaxConcurrent(1, bucket => {
                     return mergeSort(_.map(manifestList, manifest => {
                         if (!this.manifestHasEvents(manifest, bucket))
@@ -61,13 +61,15 @@ class CassandraStreamFactory implements IStreamFactory {
             return Observable.just(_.fromPairs(_.map(this.manifests, manifest => [manifest, this.timePartitioner.bucketsFrom(date)])));
         return this.client.execute(["select * from bucket_by_manifest", null])
             .map(rows => _.groupBy(rows, "manifest"))
-            .map(buckets => _.mapValues(buckets, bucket => {
-                return {entity: bucket.entity_bucket, manifest: bucket.manifest_bucket};
+            .map(manifestsWithBuckets => _.mapValues(manifestsWithBuckets, buckets => {
+                return _.map(buckets, (bucket: any) => {
+                    return {entity: bucket.entity_bucket, manifest: bucket.manifest_bucket};
+                });
             }));
     }
 
     private manifestHasEvents(manifest: string, bucket: Bucket): boolean {
-        return !!_.find(this.manifests[manifest], savedBucket => _.isEqual(bucket, savedBucket));
+        return !!_.find(this.buckets[manifest], savedBucket => _.isEqual(bucket, savedBucket));
     }
 
     private buildQuery(startDate: Date, bucket: Bucket, manifest: string): IQuery {
