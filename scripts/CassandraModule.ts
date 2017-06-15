@@ -13,9 +13,9 @@ import {ICassandraClient} from "./ICassandraClient";
 import CassandraDeserializer from "./CassandraDeserializer";
 import IEventsFilter from "./IEventsFilter";
 import EventsFilter from "./EventsFilter";
-import TimePartitioner from "./TimePartitioner";
 import PollToPushStreamFactory from "./stream/PollToPushStreamFactory";
 import CassandraStreamFactory from "./stream/CassandraStreamFactory";
+import {TimePartitioner} from "./TimePartitioner";
 
 class CassandraModule implements IModule {
 
