@@ -25,9 +25,9 @@ describe("Cassandra stream factory, given a stream factory", () => {
         let deserializer = Mock.ofType<IEventDeserializer>();
         client = Mock.ofType<ICassandraClient>();
         client.setup(c => c.execute(It.isValue<IQuery>(["select * from bucket_by_manifest", null]))).returns(a => Observable.just([
+            {"manifest": "Event1", "entity_bucket": "20180000T000000Z", "manifest_bucket": "20180629T160000Z"},
             {"manifest": "Event1", "entity_bucket": "20170000T000000Z", "manifest_bucket": "20170629T150000Z"},
             {"manifest": "Event1", "entity_bucket": "20170000T000000Z", "manifest_bucket": "20170629T160000Z"},
-            {"manifest": "Event1", "entity_bucket": "20180000T000000Z", "manifest_bucket": "20180629T160000Z"},
             {"manifest": "Event2", "entity_bucket": "20160000T000000Z", "manifest_bucket": "20160629T160000Z"}
         ]));
         client.setup(c => c.execute(It.isValue<IQuery>(["select manifest from bucket_by_manifest", null]))).returns(a => Observable.just([
@@ -77,12 +77,12 @@ describe("Cassandra stream factory, given a stream factory", () => {
         it("should read the events with a configured delay", () => {
             subject.from(null, Observable.empty<string>(), {}).subscribe(() => null);
 
-            client.verify(c => c.paginate(It.isValue<IQuery>(["select payload, timestamp from event_by_manifest " +
-            "where entity_bucket = :entityBucket and manifest_bucket = :manifestBucket and manifest = :manifest and timestamp < :endDate", {
+            client.verify(c => c.paginate(It.isValue<IQuery>(["select payload, timestamp, manifest from event_by_manifest " +
+            "where entity_bucket = :entityBucket and manifest_bucket = :manifestBucket and manifest = :manifest and sequence_nr < :endDate", {
                 entityBucket: "20170000T000000Z",
                 manifestBucket: "20170629T150000Z",
                 manifest: "Event1",
-                endDate: endDate.toISOString()
+                endDate: endDate.getTime()
             }]), It.isAny()), Times.once());
         });
     });
@@ -138,17 +138,17 @@ describe("Cassandra stream factory, given a stream factory", () => {
     }
 
     function buildQuery(entityBucket: string, manifestBucket: string, startDate: Date, finalDate: Date): IQuery {
-        let query = "select payload, timestamp from event_by_manifest " +
-                "where entity_bucket = :entityBucket and manifest_bucket = :manifestBucket and manifest = :manifest and timestamp < :endDate",
+        let query = "select payload, timestamp, manifest from event_by_manifest " +
+                "where entity_bucket = :entityBucket and manifest_bucket = :manifestBucket and manifest = :manifest and sequence_nr < :endDate",
             params: any = {
                 entityBucket: entityBucket,
                 manifestBucket: manifestBucket,
                 manifest: "Event1",
-                endDate: finalDate.toISOString()
+                endDate: finalDate.getTime()
             };
         if (startDate) {
-            query += " and timestamp > :startDate";
-            params.startDate = startDate.toISOString();
+            query += " and sequence_nr > :startDate";
+            params.startDate = startDate.getTime();
         }
 
         return [query, params];

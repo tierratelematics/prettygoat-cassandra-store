@@ -24,13 +24,12 @@ class CassandraStreamFactory implements IStreamFactory {
     }
 
     from(lastEvent: Date, completions?: Observable<string>, definition?: IWhen<any>): Observable<Event> {
-        let manifestList: string[] = [];
         return this.getManifests()
-            .do(manifests => manifestList = this.eventsFilter.filter(definition))
             .flatMap(manifests => this.getBuckets(lastEvent))
             .do(buckets => this.buckets = buckets)
             .map(buckets => {
-                let distinctBuckets = _.uniqWith(_.flatten(_.values(buckets)), _.isEqual);
+                let distinctBuckets = _.sortBy(_.uniqWith(_.flatten(_.values(buckets)), _.isEqual), ["entity", "manifest"]),
+                    manifestList = this.eventsFilter.filter(definition);
                 return Observable.from(distinctBuckets).flatMapWithMaxConcurrent(1, bucket => {
                     return mergeSort(_.map(manifestList, manifest => {
                         if (!this.manifestHasEvents(manifest, bucket))
@@ -73,8 +72,8 @@ class CassandraStreamFactory implements IStreamFactory {
     }
 
     private buildQuery(startDate: Date, bucket: Bucket, manifest: string): IQuery {
-        let query = "select payload, timestamp from event_by_manifest " +
-                "where entity_bucket = :entityBucket and manifest_bucket = :manifestBucket and manifest = :manifest and timestamp < :endDate",
+        let query = "select payload, timestamp, manifest from event_by_manifest " +
+                "where entity_bucket = :entityBucket and manifest_bucket = :manifestBucket and manifest = :manifest and sequence_nr < :endDate",
             params: any = {
                 entityBucket: bucket.entity,
                 manifestBucket: bucket.manifest,
@@ -82,10 +81,10 @@ class CassandraStreamFactory implements IStreamFactory {
             };
 
         if (startDate) {
-            query += " and timestamp > :startDate";
-            params.startDate = startDate.toISOString();
+            query += " and sequence_nr > :startDate";
+            params.startDate = startDate.getTime();
         }
-        params.endDate = moment(this.dateRetriever.getDate()).subtract(this.config.readDelay || 500, "milliseconds").toDate().toISOString();
+        params.endDate = moment(this.dateRetriever.getDate()).subtract(this.config.readDelay || 500, "milliseconds").toDate().getTime();
 
         return [query, params];
     }
