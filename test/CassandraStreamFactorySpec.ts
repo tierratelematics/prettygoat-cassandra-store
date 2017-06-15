@@ -28,7 +28,13 @@ describe("Cassandra stream factory, given a stream factory", () => {
             {"manifest": "Event1", "entity_bucket": "20170000T000000Z", "manifest_bucket": "20170629T150000Z"},
             {"manifest": "Event1", "entity_bucket": "20170000T000000Z", "manifest_bucket": "20170629T160000Z"},
             {"manifest": "Event1", "entity_bucket": "20180000T000000Z", "manifest_bucket": "20180629T160000Z"},
-            {"manifest": "Event2", "entity_bucket": "20160000T000000Z", "manifest_bucket": "20160629T160000Z"},
+            {"manifest": "Event2", "entity_bucket": "20160000T000000Z", "manifest_bucket": "20160629T160000Z"}
+        ]));
+        client.setup(c => c.execute(It.isValue<IQuery>(["select manifest from bucket_by_manifest", null]))).returns(a => Observable.just([
+            {"manifest": "Event1"},
+            {"manifest": "Event1"},
+            {"manifest": "Event1"},
+            {"manifest": "Event2"}
         ]));
         dateRetriever.setup(d => d.getDate()).returns(() => new Date(10000));
         eventsFilter.setup(e => e.filter(It.isAny())).returns(a => ["Event1"]);
