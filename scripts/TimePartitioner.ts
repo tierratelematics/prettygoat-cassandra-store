@@ -20,7 +20,7 @@ export class TimePartitioner {
         while (this.dateRetriever.getDate() >= date) {
             let momentDate = moment.utc(date).second(0).minute(0);
             buckets.push({
-                entity: momentDate.format("YYYY0000T000000") + "Z",
+                entity: momentDate.format("YYYY0101T000000") + "Z",
                 manifest: momentDate.format("YYYYMMDDTHHmmss") + "Z"
             });
             date = momentDate.add(1, "hours").toDate();

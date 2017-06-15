@@ -22,16 +22,16 @@ describe("TimePartitioner, given a date", () => {
 
             it("should build it", () => {
                 expect(subject.bucketsFrom(new Date("2016-06-06T05:48:22.206Z"))).to.eql([{
-                    entity: "20160000T000000Z",
+                    entity: "20160101T000000Z",
                     manifest: "20160606T050000Z"
                 }, {
-                    entity: "20160000T000000Z",
+                    entity: "20160101T000000Z",
                     manifest: "20160606T060000Z"
                 }, {
-                    entity: "20160000T000000Z",
+                    entity: "20160101T000000Z",
                     manifest: "20160606T070000Z"
                 }, {
-                    entity: "20160000T000000Z",
+                    entity: "20160101T000000Z",
                     manifest: "20160606T080000Z"
                 }]);
             });
@@ -44,13 +44,13 @@ describe("TimePartitioner, given a date", () => {
 
             it("should build another entity bucket", () => {
                 expect(subject.bucketsFrom(new Date("2016-12-31T23:49:22.209Z"))).to.eql([{
-                    entity: "20160000T000000Z",
+                    entity: "20160101T000000Z",
                     manifest: "20161231T230000Z"
                 }, {
-                    entity: "20170000T000000Z",
+                    entity: "20170101T000000Z",
                     manifest: "20170101T000000Z"
                 }, {
-                    entity: "20170000T000000Z",
+                    entity: "20170101T000000Z",
                     manifest: "20170101T010000Z"
                 }]);
             });
