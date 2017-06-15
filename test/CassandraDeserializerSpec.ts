@@ -13,7 +13,7 @@ describe("Given a cassandra deserializer", () => {
         it("should be parsed correctly", () => {
             expect(subject.toEvent({
                 manifest: "eventType",
-                payload: '{"count": 10}',
+                payload: '{"payload": {"count": 10}}',
                 timestamp: new Date(901828)
             })).to.eql({
                 type: "eventType",
