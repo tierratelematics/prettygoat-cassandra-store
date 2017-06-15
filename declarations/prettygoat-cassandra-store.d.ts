@@ -12,7 +12,7 @@ export interface ICassandraConfig {
 }
 
 export interface IPollToPushConfig {
-    interval: number
+    interval: number;
 }
 
 export class CassandraModule implements IModule {
