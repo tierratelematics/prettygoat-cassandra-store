@@ -12,8 +12,8 @@ import {Bucket, TimePartitioner} from "../TimePartitioner";
 @injectable()
 class CassandraStreamFactory implements IStreamFactory {
 
-    private manifests: string[] = [];
-    private buckets: Dictionary<Bucket[]> = {};
+    private manifests: string[] = null;
+    private buckets: Dictionary<Bucket[]> = null;
 
     constructor(@inject("ICassandraClient") private client: ICassandraClient,
                 @inject("TimePartitioner") private timePartitioner: TimePartitioner,

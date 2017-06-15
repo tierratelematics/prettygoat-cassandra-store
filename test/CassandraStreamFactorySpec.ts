@@ -62,10 +62,10 @@ describe("Cassandra stream factory, given a stream factory", () => {
         });
 
         it("should cache the list of manifest", () => {
-            subject.from(null, Observable.empty<string>(), {}).subscribe(event => events.push(event));
-            subject.from(null, Observable.empty<string>(), {}).subscribe(event => events.push(event));
+            subject.from(null, Observable.empty<string>(), {}).subscribe();
+            subject.from(null, Observable.empty<string>(), {}).subscribe();
 
-            client.verify(c => c.execute(It.isValue<IQuery>(["select * from bucket_by_manifest", null])), Times.once());
+            client.verify(c => c.execute(It.isValue<IQuery>(["select manifest from bucket_by_manifest", null])), Times.once());
         });
     });
 
@@ -90,7 +90,6 @@ describe("Cassandra stream factory, given a stream factory", () => {
     context("when starting the stream from a certain point", () => {
         beforeEach(() => {
             timePartitioner.setup(t => t.bucketsFrom(It.isValue(new Date(800)))).returns(a => [
-                {"entity": "20170000T000000Z", "manifest": "20170629T150000Z"},
                 {"entity": "20170000T000000Z", "manifest": "20170629T160000Z"},
                 {"entity": "20180000T000000Z", "manifest": "20180629T160000Z"}
             ]);
