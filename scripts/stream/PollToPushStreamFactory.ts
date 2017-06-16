@@ -26,7 +26,7 @@ class PollToPushStreamFactory implements IStreamFactory {
                     .flatMap(_ => this.streamFactory.from(lastEvent, completions, definition)))
             .do(event => {
                 if (event.timestamp)
-                    lastEvent = event.timestamp
+                    lastEvent = event.timestamp;
             });
     }
 }
