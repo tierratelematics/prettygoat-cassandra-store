@@ -1,6 +1,5 @@
-import {IStreamFactory, Event, IWhen, IDateRetriever, IEventDeserializer} from "prettygoat";
+import {IStreamFactory, Event, IWhen, IDateRetriever, IEventDeserializer, Dictionary} from "prettygoat";
 import {injectable, inject} from "inversify";
-import TimePartitioner from "../TimePartitioner";
 import * as _ from "lodash";
 import {ICassandraClient, IQuery} from "../ICassandraClient";
 import {Observable} from "rx";
@@ -8,9 +7,13 @@ import IEventsFilter from "../IEventsFilter";
 import {mergeSort} from "./MergeSort";
 import * as moment from "moment";
 import ICassandraConfig from "../config/ICassandraConfig";
+import {Bucket, TimePartitioner} from "../TimePartitioner";
 
 @injectable()
 class CassandraStreamFactory implements IStreamFactory {
+
+    private manifests: string[] = null;
+    private buckets: Dictionary<Bucket[]> = null;
 
     constructor(@inject("ICassandraClient") private client: ICassandraClient,
                 @inject("TimePartitioner") private timePartitioner: TimePartitioner,
@@ -21,50 +24,67 @@ class CassandraStreamFactory implements IStreamFactory {
     }
 
     from(lastEvent: Date, completions?: Observable<string>, definition?: IWhen<any>): Observable<Event> {
-        let eventsList: string[] = [];
-        return this.getEvents()
-            .map(events => this.eventsFilter.setEventsList(events))
-            .do(() => eventsList = this.eventsFilter.filter(definition))
-            .flatMap(() => this.getBuckets(lastEvent))
+        return this.getManifests()
+            .flatMap(manifests => this.getBuckets(lastEvent))
+            .do(buckets => this.buckets = buckets)
             .map(buckets => {
-                return Observable.from(buckets).flatMapWithMaxConcurrent(1, bucket => {
-                    return mergeSort(_.map(eventsList, event => {
-                        return this.client
-                            .paginate(this.buildQuery(lastEvent, bucket, event), completions)
-                            .map(row => this.deserializer.toEvent(row));
+                let distinctBuckets = _.sortBy(_.uniqWith(_.flatten(_.values(buckets)), _.isEqual), ["entity", "manifest"]),
+                    manifestList = this.eventsFilter.filter(definition);
+                return Observable.from(distinctBuckets).flatMapWithMaxConcurrent(1, bucket => {
+                    return mergeSort(_.map(manifestList, manifest => {
+                        if (!this.manifestHasEvents(manifest, bucket))
+                            return Observable.empty();
+                        else
+                            return this.client
+                                .paginate(this.buildQuery(lastEvent, bucket, manifest), completions)
+                                .map(row => this.deserializer.toEvent(row));
                     }));
                 });
             })
             .concatAll();
     }
 
-    private getEvents(): Observable<string[]> {
-        return this.client.execute(["select distinct ser_manifest from event_types", null])
-            .map(buckets => buckets.rows)
-            .map(rows => _.map(rows, (row: any) => row.ser_manifest));
+    private getManifests(): Observable<string[]> {
+        if (this.manifests)
+            return Observable.just(this.manifests);
+        return this.client.execute(["select manifest from bucket_by_manifest", null])
+            .map(rows => _(rows).map(row => row.manifest).uniq().valueOf())
+            .do(manifests => {
+                this.manifests = manifests;
+                this.eventsFilter.setEventsList(manifests);
+            });
     }
 
-    private getBuckets(date: Date): Observable<string[]> {
+    private getBuckets(date: Date): Observable<Dictionary<Bucket[]>> {
         if (date)
-            return Observable.just(this.timePartitioner.bucketsFrom(date));
-        return this.client.execute(["select distinct timebucket from event_by_timestamp", null])
-            .map(buckets => buckets.rows)
-            .map(rows => _.map(rows, (row: any) => row.timebucket).sort());
+            return Observable.just(_.fromPairs(_.map(this.manifests, manifest => [manifest, this.timePartitioner.bucketsFrom(date)])));
+        return this.client.execute(["select * from bucket_by_manifest", null])
+            .map(rows => _.groupBy(rows, "manifest"))
+            .map(manifestsWithBuckets => _.mapValues(manifestsWithBuckets, buckets => {
+                return _.map(buckets, (bucket: any) => {
+                    return {entity: bucket.entity_bucket, manifest: bucket.manifest_bucket};
+                });
+            }));
     }
 
-    private buildQuery(startDate: Date, bucket: string, event: string): IQuery {
-        let query = "select blobAsText(event) as event, timestamp from event_by_manifest " +
-                "where timebucket = :bucket and ser_manifest = :event and timestamp < minTimeUuid(:endDate)",
+    private manifestHasEvents(manifest: string, bucket: Bucket): boolean {
+        return !!_.find(this.buckets[manifest], savedBucket => _.isEqual(bucket, savedBucket));
+    }
+
+    private buildQuery(startDate: Date, bucket: Bucket, manifest: string): IQuery {
+        let query = "select payload, timestamp, manifest from event_by_manifest " +
+                "where entity_bucket = :entityBucket and manifest_bucket = :manifestBucket and manifest = :manifest and sequence_nr < :endDate",
             params: any = {
-                bucket: bucket,
-                event: event
+                entityBucket: bucket.entity,
+                manifestBucket: bucket.manifest,
+                manifest: manifest
             };
 
         if (startDate) {
-            query += " and timestamp > maxTimeUuid(:startDate)";
-            params.startDate = startDate.toISOString();
+            query += " and sequence_nr > :startDate";
+            params.startDate = startDate.getTime();
         }
-        params.endDate = moment(this.dateRetriever.getDate()).subtract(this.config.readDelay || 500, "milliseconds").toDate().toISOString();
+        params.endDate = moment(this.dateRetriever.getDate()).subtract(this.config.readDelay || 500, "milliseconds").toDate().getTime();
 
         return [query, params];
     }

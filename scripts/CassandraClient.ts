@@ -27,7 +27,7 @@ class CassandraClient implements ICassandraClient {
     }
 
     execute(query: IQuery): Observable<any> {
-        return this.wrappedExecute(query[0], query[1], {prepare: !!query[1]});
+        return this.wrappedExecute(query[0], query[1], {prepare: !!query[1]}).map(result => result.rows);
     }
 
     paginate(query: IQuery, completions: Observable<string>): Observable<any> {
@@ -45,15 +45,11 @@ class CassandraClient implements ICassandraClient {
                     else if (result.nextPage) {
                         resultPage = result;
                         observer.onNext({
-                            event: JSON.stringify({
-                                payload: {
-                                    $manifest: "__prettygoat_internal_fetch_events",
-                                    event: event
-                                }
+                            manifest: "__prettygoat_internal_fetch_events",
+                            payload: JSON.stringify({
+                                event: event
                             }),
-                            timestamp: {
-                                getDate: () => null
-                            }
+                            timestamp: null
                         });
                     } else {
                         observer.onCompleted();
