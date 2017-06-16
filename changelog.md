@@ -1,3 +1,7 @@
+# 2.0.0
+
+Switch to new event store
+
 # 1.0.3
 
 * Fix lodash types
