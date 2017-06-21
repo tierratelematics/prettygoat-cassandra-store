@@ -77,15 +77,15 @@ class CassandraStreamFactory implements IStreamFactory {
             params: any = {
                 entityBucket: bucket.entity,
                 manifestBucket: bucket.manifest,
-                manifest: manifest
+                manifest: manifest,
+                endDate: moment(this.dateRetriever.getDate()).subtract(this.config.readDelay || 500, "milliseconds").toDate().getTime()
             };
 
         if (startDate) {
             query += " and sequence_nr > :startDate";
             params.startDate = startDate.getTime();
         }
-        params.endDate = moment(this.dateRetriever.getDate()).subtract(this.config.readDelay || 500, "milliseconds").toDate().getTime();
-
+        
         return [query, params];
     }
 }
