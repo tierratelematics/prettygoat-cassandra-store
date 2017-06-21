@@ -1,3 +1,7 @@
+# 2.1.0
+
+Take manifests list from projection directly
+
 # 2.0.0
 
 Switch to new event store

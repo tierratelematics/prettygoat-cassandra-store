@@ -2,10 +2,9 @@ import "reflect-metadata";
 import expect = require("expect.js");
 import {Mock, IMock, Times, It} from "typemoq";
 import {Observable} from "rx";
-import {Event, IDateRetriever, IEventDeserializer} from "prettygoat";
+import {Event, IDateRetriever, IEventDeserializer, IWhen} from "prettygoat";
 import {ICassandraClient, IQuery} from "../scripts/ICassandraClient";
 import CassandraStreamFactory from "../scripts/stream/CassandraStreamFactory";
-import IEventsFilter from "../scripts/IEventsFilter";
 import {TimePartitioner} from "../scripts/TimePartitioner";
 
 describe("Cassandra stream factory, given a stream factory", () => {
@@ -16,11 +15,14 @@ describe("Cassandra stream factory, given a stream factory", () => {
     let events: Event[];
     let dateRetriever: IMock<IDateRetriever>;
     let endDate = new Date(9600);
+    let definition: IWhen<any> = {
+        $init: () => {},
+        Event1: (s, e) => {}
+    };
 
     beforeEach(() => {
         events = [];
         dateRetriever = Mock.ofType<IDateRetriever>();
-        let eventsFilter = Mock.ofType<IEventsFilter>();
         timePartitioner = Mock.ofType<TimePartitioner>();
         let deserializer = Mock.ofType<IEventDeserializer>();
         client = Mock.ofType<ICassandraClient>();
@@ -30,17 +32,9 @@ describe("Cassandra stream factory, given a stream factory", () => {
             {"manifest": "Event1", "entity_bucket": "20170000T000000Z", "manifest_bucket": "20170629T160000Z"},
             {"manifest": "Event2", "entity_bucket": "20160000T000000Z", "manifest_bucket": "20160629T160000Z"}
         ]));
-        client.setup(c => c.execute(It.isValue<IQuery>(["select manifest from bucket_by_manifest", null]))).returns(a => Observable.just([
-            {"manifest": "Event1"},
-            {"manifest": "Event1"},
-            {"manifest": "Event1"},
-            {"manifest": "Event2"}
-        ]));
         dateRetriever.setup(d => d.getDate()).returns(() => new Date(10000));
-        eventsFilter.setup(e => e.filter(It.isAny())).returns(a => ["Event1"]);
         deserializer.setup(d => d.toEvent(It.isAny())).returns(row => row);
-        subject = new CassandraStreamFactory(client.object, timePartitioner.object, deserializer.object,
-            eventsFilter.object, dateRetriever.object, {
+        subject = new CassandraStreamFactory(client.object, timePartitioner.object, deserializer.object, dateRetriever.object, {
                 hosts: [],
                 keyspace: "",
                 readDelay: 400
@@ -53,19 +47,12 @@ describe("Cassandra stream factory, given a stream factory", () => {
         });
 
         it("should retrieve the events from the beginning", () => {
-            subject.from(null, Observable.empty<string>(), {}).subscribe(event => events.push(event));
+            subject.from(null, Observable.empty<string>(), definition).subscribe(event => events.push(event));
 
             expect(events).to.have.length(3);
             expect(events[0].payload).to.be(10);
             expect(events[1].payload).to.be(20);
             expect(events[2].payload).to.be(30);
-        });
-
-        it("should cache the list of manifest", () => {
-            subject.from(null, Observable.empty<string>(), {}).subscribe();
-            subject.from(null, Observable.empty<string>(), {}).subscribe();
-
-            client.verify(c => c.execute(It.isValue<IQuery>(["select manifest from bucket_by_manifest", null])), Times.once());
         });
     });
 
@@ -75,7 +62,7 @@ describe("Cassandra stream factory, given a stream factory", () => {
         });
 
         it("should read the events with a configured delay", () => {
-            subject.from(null, Observable.empty<string>(), {}).subscribe(() => null);
+            subject.from(null, Observable.empty<string>(), definition).subscribe(() => null);
 
             client.verify(c => c.paginate(It.isValue<IQuery>(["select payload, timestamp, manifest from event_by_manifest " +
             "where entity_bucket = :entityBucket and manifest_bucket = :manifestBucket and manifest = :manifest and sequence_nr < :endDate", {
@@ -97,7 +84,7 @@ describe("Cassandra stream factory, given a stream factory", () => {
         });
 
         it("should retrieve the events in all the buckets greater than that point", () => {
-            subject.from(new Date(800), Observable.empty<string>(), {}).subscribe(event => events.push(event));
+            subject.from(new Date(800), Observable.empty<string>(), definition).subscribe(event => events.push(event));
 
             expect(events).to.have.length(1);
             expect(events[0].payload).to.be(30);
