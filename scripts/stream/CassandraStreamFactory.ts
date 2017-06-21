@@ -3,7 +3,6 @@ import {injectable, inject} from "inversify";
 import * as _ from "lodash";
 import {ICassandraClient, IQuery} from "../ICassandraClient";
 import {Observable} from "rx";
-import IEventsFilter from "../IEventsFilter";
 import {mergeSort} from "./MergeSort";
 import * as moment from "moment";
 import ICassandraConfig from "../config/ICassandraConfig";
@@ -18,20 +17,18 @@ class CassandraStreamFactory implements IStreamFactory {
     constructor(@inject("ICassandraClient") private client: ICassandraClient,
                 @inject("TimePartitioner") private timePartitioner: TimePartitioner,
                 @inject("IEventDeserializer") private deserializer: IEventDeserializer,
-                @inject("IEventsFilter") private eventsFilter: IEventsFilter,
                 @inject("IDateRetriever") private dateRetriever: IDateRetriever,
                 @inject("ICassandraConfig") private config: ICassandraConfig) {
     }
 
     from(lastEvent: Date, completions?: Observable<string>, definition?: IWhen<any>): Observable<Event> {
-        return this.getManifests()
-            .flatMap(manifests => this.getBuckets(lastEvent))
+        this.manifests = this.getManifests(definition);
+        return this.getBuckets(lastEvent)
             .do(buckets => this.buckets = buckets)
             .map(buckets => {
-                let distinctBuckets = _.sortBy(_.uniqWith(_.flatten(_.values(buckets)), _.isEqual), ["entity", "manifest"]),
-                    manifestList = this.eventsFilter.filter(definition);
+                let distinctBuckets = _.sortBy(_.uniqWith(_.flatten(_.values(buckets)), _.isEqual), ["entity", "manifest"]);
                 return Observable.from(distinctBuckets).flatMapWithMaxConcurrent(1, bucket => {
-                    return mergeSort(_.map(manifestList, manifest => {
+                    return mergeSort(_.map(this.manifests, manifest => {
                         if (!this.manifestHasEvents(manifest, bucket))
                             return Observable.empty();
                         else
@@ -44,15 +41,8 @@ class CassandraStreamFactory implements IStreamFactory {
             .concatAll();
     }
 
-    private getManifests(): Observable<string[]> {
-        if (this.manifests)
-            return Observable.just(this.manifests);
-        return this.client.execute(["select manifest from bucket_by_manifest", null])
-            .map(rows => _(rows).map(row => row.manifest).uniq().valueOf())
-            .do(manifests => {
-                this.manifests = manifests;
-                this.eventsFilter.setEventsList(manifests);
-            });
+    private getManifests(definition: IWhen<any>): string[] {
+        return _(definition).keys().filter(key => key !== "$init").valueOf();
     }
 
     private getBuckets(date: Date): Observable<Dictionary<Bucket[]>> {
@@ -85,7 +75,7 @@ class CassandraStreamFactory implements IStreamFactory {
             query += " and sequence_nr > :startDate";
             params.startDate = startDate.getTime();
         }
-        
+
         return [query, params];
     }
 }

@@ -11,8 +11,6 @@ import NullSnapshotRepository from "./NullSnapshotRepository";
 import CassandraClient from "./CassandraClient";
 import {ICassandraClient} from "./ICassandraClient";
 import CassandraDeserializer from "./CassandraDeserializer";
-import IEventsFilter from "./IEventsFilter";
-import EventsFilter from "./EventsFilter";
 import PollToPushStreamFactory from "./stream/PollToPushStreamFactory";
 import CassandraStreamFactory from "./stream/CassandraStreamFactory";
 import {TimePartitioner} from "./TimePartitioner";
@@ -25,7 +23,6 @@ class CassandraModule implements IModule {
         container.bind<ICassandraClient>("ICassandraClient").to(CassandraClient).inSingletonScope();
         container.bind<IStreamFactory>("IStreamFactory").to(PollToPushStreamFactory).inSingletonScope();
         container.bind<ISnapshotRepository>("ISnapshotRepository").to(NullSnapshotRepository).inSingletonScope();
-        container.bind<IEventsFilter>("IEventsFilter").to(EventsFilter).inSingletonScope();
         container.bind<TimePartitioner>("TimePartitioner").to(TimePartitioner).inSingletonScope();
     };
 
