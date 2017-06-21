@@ -11,9 +11,6 @@ import {Bucket, TimePartitioner} from "../TimePartitioner";
 @injectable()
 class CassandraStreamFactory implements IStreamFactory {
 
-    private manifests: string[] = null;
-    private buckets: Dictionary<Bucket[]> = null;
-
     constructor(@inject("ICassandraClient") private client: ICassandraClient,
                 @inject("TimePartitioner") private timePartitioner: TimePartitioner,
                 @inject("IEventDeserializer") private deserializer: IEventDeserializer,
@@ -22,14 +19,13 @@ class CassandraStreamFactory implements IStreamFactory {
     }
 
     from(lastEvent: Date, completions?: Observable<string>, definition?: IWhen<any>): Observable<Event> {
-        this.manifests = this.getManifests(definition);
-        return this.getBuckets(lastEvent)
-            .do(buckets => this.buckets = buckets)
+        let manifests = this.getManifests(definition);
+        return this.getBuckets(lastEvent, manifests)
             .map(buckets => {
                 let distinctBuckets = _.sortBy(_.uniqWith(_.flatten(_.values(buckets)), _.isEqual), ["entity", "manifest"]);
                 return Observable.from(distinctBuckets).flatMapWithMaxConcurrent(1, bucket => {
-                    return mergeSort(_.map(this.manifests, manifest => {
-                        if (!this.manifestHasEvents(manifest, bucket))
+                    return mergeSort(_.map(manifests, manifest => {
+                        if (!this.manifestHasEvents(manifest, bucket, buckets))
                             return Observable.empty();
                         else
                             return this.client
@@ -45,9 +41,9 @@ class CassandraStreamFactory implements IStreamFactory {
         return _(definition).keys().filter(key => key !== "$init").valueOf();
     }
 
-    private getBuckets(date: Date): Observable<Dictionary<Bucket[]>> {
+    private getBuckets(date: Date, manifests: string[]): Observable<Dictionary<Bucket[]>> {
         if (date)
-            return Observable.just(_.fromPairs(_.map(this.manifests, manifest => [manifest, this.timePartitioner.bucketsFrom(date)])));
+            return Observable.just(_.fromPairs(_.map(manifests, manifest => [manifest, this.timePartitioner.bucketsFrom(date)])));
         return this.client.execute(["select * from bucket_by_manifest", null])
             .map(rows => _.groupBy(rows, "manifest"))
             .map(manifestsWithBuckets => _.mapValues(manifestsWithBuckets, buckets => {
@@ -57,8 +53,8 @@ class CassandraStreamFactory implements IStreamFactory {
             }));
     }
 
-    private manifestHasEvents(manifest: string, bucket: Bucket): boolean {
-        return !!_.find(this.buckets[manifest], savedBucket => _.isEqual(bucket, savedBucket));
+    private manifestHasEvents(manifest: string, bucket: Bucket, bucketsMap: Dictionary<Bucket[]>): boolean {
+        return !!_.find(bucketsMap[manifest], savedBucket => _.isEqual(bucket, savedBucket));
     }
 
     private buildQuery(startDate: Date, bucket: Bucket, manifest: string): IQuery {
