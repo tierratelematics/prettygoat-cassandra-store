@@ -1,3 +1,7 @@
+# 2.1.1
+
+Fix cassandra pages retrieve
+
 # 2.1.0
 
 Take manifests list from projection directly
