@@ -32,9 +32,9 @@ class CassandraClient implements ICassandraClient {
 
     paginate(query: IQuery, completions: Observable<string>): Observable<any> {
         let resultPage = null,
-            event = query[1].event;
+            manifest = query[1].manifest;
         let subscription = completions
-            .filter(completion => completion === event)
+            .filter(completion => completion === manifest)
             .filter(completion => resultPage && resultPage.nextPage)
             .subscribe(completion => resultPage.nextPage());
         return Observable.create(observer => {
@@ -47,7 +47,7 @@ class CassandraClient implements ICassandraClient {
                         observer.onNext({
                             manifest: "__prettygoat_internal_fetch_events",
                             payload: JSON.stringify({
-                                event: event
+                                payload: {event: manifest}
                             }),
                             timestamp: null
                         });
