@@ -9,10 +9,12 @@
   },
   "dependencies": {
     "@types/cassandra-driver": "~0.8.10",
+    "@types/ioredis": "0.0.23",
     "@types/node": "~6.0.52",
     "@types/socket.io": "~1.4.27",
     "cassandra-driver": "~3.2.0",
     "inversify": "~3.1.0",
+    "ioredis": "~3.1.1",
     "lodash": "~4.13.1",
     "moment": "~2.18.0",
     "reflect-metadata": "0.1.8",
