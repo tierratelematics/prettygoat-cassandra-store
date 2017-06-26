@@ -7,7 +7,6 @@ import {
     IServiceLocator
 } from "prettygoat";
 import {interfaces} from "inversify";
-import NullSnapshotRepository from "./NullSnapshotRepository";
 import CassandraClient from "./CassandraClient";
 import {ICassandraClient} from "./ICassandraClient";
 import CassandraDeserializer from "./CassandraDeserializer";
@@ -22,7 +21,6 @@ class CassandraModule implements IModule {
         container.bind<IEventDeserializer>("IEventDeserializer").to(CassandraDeserializer).inSingletonScope();
         container.bind<ICassandraClient>("ICassandraClient").to(CassandraClient).inSingletonScope();
         container.bind<IStreamFactory>("IStreamFactory").to(PollToPushStreamFactory).inSingletonScope();
-        container.bind<ISnapshotRepository>("ISnapshotRepository").to(NullSnapshotRepository).inSingletonScope();
         container.bind<TimePartitioner>("TimePartitioner").to(TimePartitioner).inSingletonScope();
     };
 
