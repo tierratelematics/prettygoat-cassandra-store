@@ -1,9 +1,10 @@
 import {ISnapshotRepository, Snapshot} from "prettygoat";
 import {Observable} from "rx";
-import {inject} from "inversify";
+import {inject, injectable} from "inversify";
 import {Redis} from "ioredis";
 import {map, zipObject, mapValues} from "lodash";
 
+@injectable()
 class RedisSnapshotRepository implements ISnapshotRepository {
 
     constructor(@inject("RedisClient") private client: Redis) {

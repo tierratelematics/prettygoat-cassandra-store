@@ -27,9 +27,9 @@ class CassandraModule implements IModule {
         container.bind<IStreamFactory>("IStreamFactory").to(PollToPushStreamFactory).inSingletonScope();
         container.bind<TimePartitioner>("TimePartitioner").to(TimePartitioner).inSingletonScope();
         container.bind<ISnapshotRepository>("ISnapshotRepository").to(RedisSnapshotRepository).inSingletonScope();
-        container.bind<ioredis.Redis>("RedisInstance").toDynamicValue(() => {
+        container.bind<ioredis.Redis>("RedisClient").toDynamicValue(() => {
             let config = container.get<IRedisConfig>("IRedisConfig");
-            return new ioredis.Cluster(!isArray(config) ? [config] : config);
+            return isArray(config) ? new ioredis.Cluster(config) : new ioredis(config);
         });
     };
 
