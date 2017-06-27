@@ -17,7 +17,10 @@ describe("Given a redis snapshot repository", () => {
 
     context("when requesting the snapshots", () => {
         beforeEach(() => {
-            client.setup(c => c.keys("prettygoat-cassandra-store:snapshots:*")).returns(() => Promise.resolve(["proj1", "proj2"]));
+            client.setup(c => c.keys("prettygoat-cassandra-store:snapshots:*")).returns(() => Promise.resolve([
+                "prettygoat-cassandra-store:snapshots:proj1",
+                "prettygoat-cassandra-store:snapshots:proj2"
+            ]));
             client.setup(c => c.get("prettygoat-cassandra-store:snapshots:proj1")).returns(() => Promise.resolve(JSON.stringify({
                 memento: {
                     count: 20
