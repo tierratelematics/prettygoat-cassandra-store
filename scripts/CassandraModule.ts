@@ -4,8 +4,7 @@ import {
     IEventDeserializer,
     ISnapshotRepository,
     IProjectionRegistry,
-    IServiceLocator,
-    IRedisConfig
+    IServiceLocator
 } from "prettygoat";
 import {interfaces} from "inversify";
 import CassandraClient from "./CassandraClient";
@@ -15,8 +14,6 @@ import PollToPushStreamFactory from "./stream/PollToPushStreamFactory";
 import CassandraStreamFactory from "./stream/CassandraStreamFactory";
 import {TimePartitioner} from "./TimePartitioner";
 import RedisSnapshotRepository from "./RedisSnapshotRepository";
-import * as ioredis from "ioredis";
-import {isArray} from "lodash";
 
 class CassandraModule implements IModule {
 
@@ -27,10 +24,6 @@ class CassandraModule implements IModule {
         container.bind<IStreamFactory>("IStreamFactory").to(PollToPushStreamFactory).inSingletonScope();
         container.bind<TimePartitioner>("TimePartitioner").to(TimePartitioner).inSingletonScope();
         container.bind<ISnapshotRepository>("ISnapshotRepository").to(RedisSnapshotRepository).inSingletonScope();
-        container.bind<ioredis.Redis>("RedisClient").toDynamicValue(() => {
-            let config = container.get<IRedisConfig>("IRedisConfig");
-            return isArray(config) ? new ioredis.Cluster(config) : new ioredis(config);
-        });
     };
 
     register(registry: IProjectionRegistry, serviceLocator?: IServiceLocator, overrides?: any): void {

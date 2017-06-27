@@ -23,7 +23,6 @@ class RedisSnapshotRepository implements ISnapshotRepository {
                     .then(snapshots => zipObject(map(keys, (key: string) => key.replace("prettygoat-cassandra-store:snapshots:", "")), snapshots))
                     .then(snapshots => mapValues(snapshots, snapshot => JSON.parse(snapshot)));
             });
-
     }
 
     getSnapshot<T>(streamId: string): Observable<Snapshot<T>> {
