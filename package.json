@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@types/cassandra-driver": "~0.8.10",
+    "@types/ioredis": "0.0.23",
     "@types/node": "~6.0.52",
     "@types/socket.io": "~1.4.27",
     "cassandra-driver": "~3.2.0",
@@ -19,7 +20,7 @@
     "rx": "~4.1.0"
   },
   "peerDependencies": {
-    "prettygoat": "^3.0.0"
+    "prettygoat": "^3.6.0"
   },
   "main": "dist/prettygoat-cassandra-store.js",
   "typings": "declarations/prettygoat-cassandra-store.d.ts"
