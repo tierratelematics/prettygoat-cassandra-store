@@ -1,3 +1,7 @@
+# 3.0.0
+
+Add redis snapshot repository
+
 # 2.1.1
 
 Fix cassandra pages retrieve
