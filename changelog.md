@@ -1,3 +1,7 @@
+# 3.0.1
+
+Fix snapshot date parsing
+
 # 3.0.0
 
 Add redis snapshot repository
