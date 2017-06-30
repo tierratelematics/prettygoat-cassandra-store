@@ -21,7 +21,11 @@ class RedisSnapshotRepository implements ISnapshotRepository {
                 return Promise
                     .all(map(keys, key => this.client.get(key)))
                     .then(snapshots => zipObject(map(keys, (key: string) => key.replace("prettygoat-cassandra-store:snapshots:", "")), snapshots))
-                    .then(snapshots => mapValues(snapshots, snapshot => JSON.parse(snapshot)));
+                    .then(snapshots => mapValues(snapshots, snapshot => {
+                        let parsed = JSON.parse(snapshot);
+                        parsed.lastEvent = new Date(parsed.lastEvent);
+                        return parsed;
+                    }));
             });
     }
 

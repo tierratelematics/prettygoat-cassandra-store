@@ -25,13 +25,13 @@ describe("Given a redis snapshot repository", () => {
                 memento: {
                     count: 20
                 },
-                lastEvent: 5000
+                lastEvent: new Date(5000)
             })));
             client.setup(c => c.get("prettygoat-cassandra-store:snapshots:proj2")).returns(() => Promise.resolve(JSON.stringify({
                 memento: {
                     count: 30
                 },
-                lastEvent: 6000
+                lastEvent: new Date(6000)
             })));
         });
         it("they should be loaded", (done) => {
@@ -40,6 +40,7 @@ describe("Given a redis snapshot repository", () => {
                     proj1: new Snapshot({count: 20}, new Date(5000)),
                     proj2: new Snapshot({count: 30}, new Date(6000))
                 });
+                expect(snapshots["proj1"].lastEvent instanceof Date).to.be(true);
                 done();
             });
         });
