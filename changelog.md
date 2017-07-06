@@ -1,3 +1,7 @@
+# 3.0.2
+
+Fix bad polling date
+
 # 3.0.1
 
 Fix snapshot date parsing
