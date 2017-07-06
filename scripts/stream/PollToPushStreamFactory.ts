@@ -1,4 +1,4 @@
-import {IStreamFactory, Event, IWhen} from "prettygoat";
+import {IStreamFactory, Event, IWhen, IDateRetriever} from "prettygoat";
 import {injectable, inject, optional} from "inversify";
 import {Observable} from "rx";
 import {DefaultPollToPushConfig, IPollToPushConfig} from "../config/PollToPushConfig";
@@ -7,7 +7,8 @@ import {DefaultPollToPushConfig, IPollToPushConfig} from "../config/PollToPushCo
 class PollToPushStreamFactory implements IStreamFactory {
 
     constructor(@inject("StreamFactory") private streamFactory: IStreamFactory,
-                @inject("IPollToPushConfig") @optional() private config: IPollToPushConfig = new DefaultPollToPushConfig()) {
+                @inject("IPollToPushConfig") @optional() private config: IPollToPushConfig = new DefaultPollToPushConfig(),
+                @inject("IDateRetriever") private dateRetriever: IDateRetriever) {
 
     }
 
@@ -20,14 +21,11 @@ class PollToPushStreamFactory implements IStreamFactory {
                 timestamp: null,
                 splitKey: null
             }))
-            .concat(
-                Observable
-                    .interval(this.config.interval)
-                    .flatMap(_ => this.streamFactory.from(lastEvent, completions, definition)))
-            .do(event => {
-                if (event.timestamp)
-                    lastEvent = event.timestamp;
-            });
+            .concat(Observable
+                .interval(this.config.interval)
+                .flatMapWithMaxConcurrent(1, _ => this.streamFactory.from(lastEvent, completions, definition))
+            )
+            .do(_ => lastEvent = this.dateRetriever.getDate());
     }
 }
 
