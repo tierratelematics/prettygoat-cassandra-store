@@ -3,6 +3,9 @@ import {injectable, inject, optional} from "inversify";
 import {Observable} from "rx";
 import {DefaultPollToPushConfig, IPollToPushConfig} from "../config/PollToPushConfig";
 
+const REALTIME = "__prettygoat_internal_realtime";
+const EMPTY_POLLING = "__prettygoat_internal_empty_poll";
+
 @injectable()
 class PollToPushStreamFactory implements IStreamFactory {
 
@@ -13,19 +16,36 @@ class PollToPushStreamFactory implements IStreamFactory {
     }
 
     from(lastEvent: Date, completions?: Observable<string>, definition?: IWhen<any>): Observable<Event> {
+        let pollTime = this.dateRetriever.getDate();
         return this.streamFactory
             .from(lastEvent, completions, definition)
-            .concat(Observable.just({
-                type: "__prettygoat_internal_realtime",
-                payload: null,
-                timestamp: null,
-                splitKey: null
-            }))
+            .concat(Observable.just(this.eventWithManifest(REALTIME)))
             .concat(Observable
                 .interval(this.config.interval)
-                .flatMapWithMaxConcurrent(1, _ => this.streamFactory.from(lastEvent, completions, definition))
+                .do(() => pollTime = this.dateRetriever.getDate())
+                .flatMapWithMaxConcurrent(1, _ => this.streamFactory
+                    .from(lastEvent, completions, definition)
+                    .defaultIfEmpty(this.eventWithManifest(EMPTY_POLLING)))
             )
-            .do(_ => lastEvent = this.dateRetriever.getDate());
+            .do(event => {
+                if (event.timestamp)
+                    lastEvent = event.timestamp;
+                // Move forward the poll time if some buckets can be skipped in the next iteration (in order to avoid stressing cassandra)
+                // since I'm in realtime (and no more events are produced in the past) or an empty poll cycle
+                // has been done
+                if ((event.type === REALTIME || event.type === EMPTY_POLLING) && pollTime > lastEvent)
+                    lastEvent = pollTime;
+            })
+            .filter(event => event.type !== EMPTY_POLLING);
+    }
+
+    private eventWithManifest(manifest: string): Event {
+        return {
+            type: manifest,
+            payload: null,
+            timestamp: null,
+            splitKey: null
+        };
     }
 }
 
