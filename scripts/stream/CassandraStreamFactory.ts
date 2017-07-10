@@ -21,9 +21,9 @@ class CassandraStreamFactory implements IStreamFactory {
     from(lastEvent: Date, completions?: Observable<string>, definition?: IWhen<any>): Observable<Event> {
         let manifests = this.getManifests(definition);
         return this.getBuckets(lastEvent, manifests)
-            .map(buckets => {
+            .concatMap(buckets => {
                 let distinctBuckets = _.sortBy(_.uniqWith(_.flatten(_.values(buckets)), _.isEqual), ["entity", "manifest"]);
-                return Observable.from(distinctBuckets).flatMapWithMaxConcurrent(1, bucket => {
+                return Observable.from(distinctBuckets).concatMap(bucket => {
                     return mergeSort(_.map(manifests, manifest => {
                         if (!this.manifestHasEvents(manifest, bucket, buckets))
                             return Observable.empty();
@@ -34,7 +34,6 @@ class CassandraStreamFactory implements IStreamFactory {
                     }));
                 });
             })
-            .concatAll();
     }
 
     private getManifests(definition: IWhen<any>): string[] {
