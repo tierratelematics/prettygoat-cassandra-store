@@ -1,10 +1,6 @@
-# 3.0.3
+# 3.0.4
 
-Fix some possible events not read during polling
-
-# 3.0.2
-
-Fix bad polling date
+Memory growth optimizations
 
 # 3.0.1
 
