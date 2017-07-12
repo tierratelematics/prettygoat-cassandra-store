@@ -33,11 +33,11 @@ class CassandraStreamFactory implements IStreamFactory {
                                 .map(row => this.deserializer.toEvent(row));
                     }));
                 });
-            })
+            });
     }
 
     private getManifests(definition: IWhen<any>): string[] {
-        return _(definition).keys().filter(key => key !== "$init").valueOf();
+        return _(definition).keys().filter(key => key !== "$init" && key !== "$any").valueOf();
     }
 
     private getBuckets(date: Date, manifests: string[]): Observable<Dictionary<Bucket[]>> {
