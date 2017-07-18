@@ -4,7 +4,7 @@ import * as _ from "lodash";
 
 export function mergeSort(observables: Observable<Event>[]): Observable<Event> {
     return Observable.create(observer => {
-        if (!observables.length) return observer.onCompleted();
+        if (!observables.length) return observer.complete();
 
         let buffers: Event[][] = _.map(observables, o => []);
         let completed: boolean[] = _.map(observables, o => false);

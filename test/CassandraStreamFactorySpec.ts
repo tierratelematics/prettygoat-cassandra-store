@@ -94,30 +94,30 @@ describe("Cassandra stream factory, given a stream factory", () => {
     function setupClient(cassandraClient: IMock<ICassandraClient>, startDate: Date, finalDate: Date) {
         cassandraClient.setup(c => c.paginate(It.isValue<IQuery>(buildQuery("20170000T000000Z", "20170629T150000Z", startDate, finalDate)), It.isAny()))
             .returns(a => Observable.create(observer => {
-                observer.onNext({
+                observer.next({
                     type: "Event1",
                     payload: 10,
                     timestamp: new Date(1000)
                 });
-                observer.onNext({
+                observer.next({
                     type: "Event1",
                     payload: 20,
                     timestamp: new Date(2000)
                 });
-                observer.onCompleted();
+                observer.complete();
             }));
         cassandraClient.setup(c => c.paginate(It.isValue<IQuery>(buildQuery("20170000T000000Z", "20170629T160000Z", startDate, finalDate)), It.isAny()))
             .returns(a => Observable.create(observer => {
-                observer.onCompleted();
+                observer.complete();
             }));
         cassandraClient.setup(c => c.paginate(It.isValue<IQuery>(buildQuery("20180000T000000Z", "20180629T160000Z", startDate, finalDate)), It.isAny()))
             .returns(a => Observable.create(observer => {
-                observer.onNext({
+                observer.next({
                     type: "Event1",
                     payload: 30,
                     timestamp: new Date(5000)
                 });
-                observer.onCompleted();
+                observer.complete();
             }));
     }
 

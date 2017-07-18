@@ -1,9 +1,10 @@
 import {ICassandraClient, IQuery} from "./ICassandraClient";
-import {Observable, Disposable} from "rxjs";
+import {Observable} from "rxjs";
 import {inject, injectable} from "inversify";
 import {Client, auth} from "cassandra-driver";
 import {assign} from "lodash";
 import ICassandraConfig from "./config/ICassandraConfig";
+import {SpecialEvents} from "prettygoat";
 
 @injectable()
 class CassandraClient implements ICassandraClient {
@@ -22,8 +23,8 @@ class CassandraClient implements ICassandraClient {
             authProvider: authProvider
         }, config.driverOptions || {}));
 
-        this.wrappedExecute = Observable.fromNodeCallback(this.client.execute, this.client);
-        this.wrappedEachRow = Observable.fromNodeCallback(this.client.eachRow, this.client);
+        this.wrappedExecute = Observable.bindNodeCallback(this.client.execute, this.client);
+        this.wrappedEachRow = Observable.bindNodeCallback(this.client.eachRow, this.client);
     }
 
     execute(query: IQuery): Observable<any> {
@@ -31,33 +32,35 @@ class CassandraClient implements ICassandraClient {
     }
 
     paginate(query: IQuery, completions: Observable<string>): Observable<any> {
-        let resultPage = null,
-            manifest = query[1].manifest;
-        let subscription = completions
-            .filter(completion => completion === manifest)
-            .filter(completion => resultPage && resultPage.nextPage)
-            .subscribe(completion => resultPage.nextPage());
+        let manifest = query[1].manifest;
+
         return Observable.create(observer => {
+            let resultPage = null,
+                subscription = completions
+                    .filter(completion => completion === manifest)
+                    .filter(completion => resultPage && resultPage.nextPage)
+                    .subscribe(completion => resultPage.nextPage());
+
             this.wrappedEachRow(query[0], query[1], {prepare: !!query[1], fetchSize: this.config.fetchSize || 5000},
-                (n, row) => observer.onNext(row),
+                (n, row) => observer.next(row),
                 (error, result) => {
-                    if (error) observer.onError(error);
+                    if (error) observer.error(error);
                     else if (result.nextPage) {
                         resultPage = result;
-                        observer.onNext({
-                            manifest: "__prettygoat_internal_fetch_events",
+                        observer.next({
+                            manifest: SpecialEvents.FETCH_EVENTS,
                             payload: JSON.stringify({
                                 payload: {event: manifest}
                             }),
                             timestamp: null
                         });
                     } else {
-                        observer.onCompleted();
-                        subscription.dispose();
+                        observer.complete();
+                        subscription.unsubscribe();
                     }
                 }
             );
-            return Disposable.empty;
+            return subscription;
         });
     }
 
