@@ -19,13 +19,13 @@ class PollToPushStreamFactory implements IStreamFactory {
         let pollTime = this.dateRetriever.getDate();
         return this.streamFactory
             .from(lastEvent, completions, definition)
-            .concat(Observable.just(this.eventWithManifest(REALTIME)))
+            .concat(Observable.of(this.eventWithManifest(REALTIME)))
             .concat(Observable
                 .interval(this.config.interval)
                 .do(() => pollTime = this.dateRetriever.getDate())
-                .flatMap(1, _ => this.streamFactory
+                .flatMap(_ => this.streamFactory
                     .from(lastEvent, completions, definition)
-                    .defaultIfEmpty(this.eventWithManifest(EMPTY_POLLING)))
+                    .defaultIfEmpty(this.eventWithManifest(EMPTY_POLLING)), 1)
             )
             .do(event => {
                 if (event.timestamp)

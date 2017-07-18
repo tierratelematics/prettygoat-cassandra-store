@@ -1,8 +1,8 @@
+import {Observable} from "rxjs";
 import {IStreamFactory, Event, WhenBlock, IDateRetriever, IEventDeserializer, Dictionary} from "prettygoat";
 import {injectable, inject} from "inversify";
 import * as _ from "lodash";
 import {ICassandraClient, IQuery} from "../ICassandraClient";
-import {Observable} from "rxjs";
 import {mergeSort} from "./MergeSort";
 import * as moment from "moment";
 import ICassandraConfig from "../config/ICassandraConfig";
@@ -23,7 +23,7 @@ class CassandraStreamFactory implements IStreamFactory {
         return this.getBuckets(lastEvent, manifests)
             .concatMap(buckets => {
                 let distinctBuckets = _.sortBy(_.uniqWith(_.flatten(_.values(buckets)), _.isEqual), ["entity", "manifest"]);
-                return Observable.from(distinctBuckets).concatMap(bucket => {
+                return Observable.from(distinctBuckets).concatMap<Bucket, any>(bucket => {
                     return mergeSort(_.map(manifests, manifest => {
                         if (!this.manifestHasEvents(manifest, bucket, buckets))
                             return Observable.empty();
