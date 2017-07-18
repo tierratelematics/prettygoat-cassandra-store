@@ -1,8 +1,8 @@
 import "reflect-metadata";
 import expect = require("expect.js");
 import {Mock, IMock, Times, It} from "typemoq";
-import {Observable} from "rx";
-import {Event, IDateRetriever, IEventDeserializer, IWhen} from "prettygoat";
+import {Observable} from "rxjs";
+import {Event, IDateRetriever, IEventDeserializer, WhenBlock} from "prettygoat";
 import {ICassandraClient, IQuery} from "../scripts/ICassandraClient";
 import CassandraStreamFactory from "../scripts/stream/CassandraStreamFactory";
 import {TimePartitioner} from "../scripts/TimePartitioner";
@@ -15,7 +15,7 @@ describe("Cassandra stream factory, given a stream factory", () => {
     let events: Event[];
     let dateRetriever: IMock<IDateRetriever>;
     let endDate = new Date(9600);
-    let definition: IWhen<any> = {
+    let definition: WhenBlock<any> = {
         $init: () => {},
         Event1: (s, e) => {}
     };
@@ -26,7 +26,7 @@ describe("Cassandra stream factory, given a stream factory", () => {
         timePartitioner = Mock.ofType<TimePartitioner>();
         let deserializer = Mock.ofType<IEventDeserializer>();
         client = Mock.ofType<ICassandraClient>();
-        client.setup(c => c.execute(It.isValue<IQuery>(["select * from bucket_by_manifest", null]))).returns(a => Observable.just([
+        client.setup(c => c.execute(It.isValue<IQuery>(["select * from bucket_by_manifest", null]))).returns(a => Observable.of([
             {"manifest": "Event1", "entity_bucket": "20180000T000000Z", "manifest_bucket": "20180629T160000Z"},
             {"manifest": "Event1", "entity_bucket": "20170000T000000Z", "manifest_bucket": "20170629T150000Z"},
             {"manifest": "Event1", "entity_bucket": "20170000T000000Z", "manifest_bucket": "20170629T160000Z"},
@@ -97,13 +97,11 @@ describe("Cassandra stream factory, given a stream factory", () => {
                 observer.onNext({
                     type: "Event1",
                     payload: 10,
-                    splitKey: null,
                     timestamp: new Date(1000)
                 });
                 observer.onNext({
                     type: "Event1",
                     payload: 20,
-                    splitKey: null,
                     timestamp: new Date(2000)
                 });
                 observer.onCompleted();
@@ -117,7 +115,6 @@ describe("Cassandra stream factory, given a stream factory", () => {
                 observer.onNext({
                     type: "Event1",
                     payload: 30,
-                    splitKey: null,
                     timestamp: new Date(5000)
                 });
                 observer.onCompleted();

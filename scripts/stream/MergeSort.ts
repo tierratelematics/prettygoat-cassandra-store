@@ -1,40 +1,40 @@
 import {Event} from "prettygoat";
-import {Observable, CompositeDisposable, Observer} from "rx";
+import {Observable, Observer, Subscription} from "rxjs";
 import * as _ from "lodash";
 
 export function mergeSort(observables: Observable<Event>[]): Observable<Event> {
-    return Observable.create<Event>(observer => {
+    return Observable.create(observer => {
         if (!observables.length) return observer.onCompleted();
 
         let buffers: Event[][] = _.map(observables, o => []);
         let completed: boolean[] = _.map(observables, o => false);
-        let disposable = new CompositeDisposable();
+        let subscription = new Subscription();
 
         _.forEach(observables, (observable, i) => {
-            disposable.add(observable.subscribe(event => {
+            subscription.add(observable.subscribe(event => {
                 buffers[i].push(event);
                 loop(buffers, completed, observer);
             }, error => {
-                observer.onError(error);
+                observer.error(error);
             }, () => {
                 completed[i] = true;
                 if (_.every(completed, completion => completion)) {
                     flushBuffer(buffers, observer);
-                    observer.onCompleted();
+                    observer.complete();
                 } else {
                     loop(buffers, completed, observer);
                 }
             }));
         });
 
-        return disposable;
+        return subscription;
     });
 }
 
 function loop(buffers: Event[][], completed: boolean[], observer: Observer<Event>) {
     while (observablesHaveEmitted(buffers, completed)) {
         let item = getLowestItem(buffers);
-        if (item) observer.onNext(item);
+        if (item) observer.next(item);
     }
 }
 
@@ -42,8 +42,8 @@ function flushBuffer(buffers: Event[][], observer: Observer<Event>) {
     let item = null;
     do {
         item = getLowestItem(buffers);
-        if (item) observer.onNext(item);
-    } while (item)
+        if (item) observer.next(item);
+    } while (item);
 }
 
 function observablesHaveEmitted(buffers: Event[][], completed: boolean[]): boolean {

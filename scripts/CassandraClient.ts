@@ -1,5 +1,5 @@
 import {ICassandraClient, IQuery} from "./ICassandraClient";
-import {Observable, Disposable} from "rx";
+import {Observable, Disposable} from "rxjs";
 import {inject, injectable} from "inversify";
 import {Client, auth} from "cassandra-driver";
 import {assign} from "lodash";

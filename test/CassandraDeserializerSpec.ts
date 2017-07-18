@@ -20,8 +20,7 @@ describe("Given a cassandra deserializer", () => {
                 payload: {
                     count: 10
                 },
-                timestamp: new Date(901828),
-                splitKey: null
+                timestamp: new Date(901828)
             });
         });
     });

@@ -1,6 +1,6 @@
-import {IStreamFactory, Event, IWhen, IDateRetriever} from "prettygoat";
+import {IStreamFactory, Event, WhenBlock, IDateRetriever} from "prettygoat";
 import {injectable, inject, optional} from "inversify";
-import {Observable} from "rx";
+import {Observable} from "rxjs";
 import {DefaultPollToPushConfig, IPollToPushConfig} from "../config/PollToPushConfig";
 
 const REALTIME = "__prettygoat_internal_realtime";
@@ -15,7 +15,7 @@ class PollToPushStreamFactory implements IStreamFactory {
 
     }
 
-    from(lastEvent: Date, completions?: Observable<string>, definition?: IWhen<any>): Observable<Event> {
+    from(lastEvent: Date, completions?: Observable<string>, definition?: WhenBlock<any>): Observable<Event> {
         let pollTime = this.dateRetriever.getDate();
         return this.streamFactory
             .from(lastEvent, completions, definition)
@@ -23,7 +23,7 @@ class PollToPushStreamFactory implements IStreamFactory {
             .concat(Observable
                 .interval(this.config.interval)
                 .do(() => pollTime = this.dateRetriever.getDate())
-                .flatMapWithMaxConcurrent(1, _ => this.streamFactory
+                .flatMap(1, _ => this.streamFactory
                     .from(lastEvent, completions, definition)
                     .defaultIfEmpty(this.eventWithManifest(EMPTY_POLLING)))
             )
@@ -43,8 +43,7 @@ class PollToPushStreamFactory implements IStreamFactory {
         return {
             type: manifest,
             payload: null,
-            timestamp: null,
-            splitKey: null
+            timestamp: null
         };
     }
 }

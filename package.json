@@ -17,7 +17,7 @@
     "lodash": "~4.13.1",
     "moment": "~2.18.0",
     "reflect-metadata": "0.1.8",
-    "rx": "~4.1.0"
+    "rxjs": "~5.4.2"
   },
   "peerDependencies": {
     "prettygoat": "^3.6.0"
