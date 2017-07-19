@@ -23,7 +23,7 @@ class CassandraStreamFactory implements IStreamFactory {
         return this.getBuckets(lastEvent, manifests)
             .concatMap(buckets => {
                 let distinctBuckets = _.sortBy(_.uniqWith(_.flatten(_.values(buckets)), _.isEqual), ["entity", "manifest"]);
-                return Observable.from(distinctBuckets).concatMap<Bucket, any>(bucket => {
+                return Observable.from<Bucket>(distinctBuckets).concatMap<Bucket, any>(bucket => {
                     return mergeSort(_.map(manifests, manifest => {
                         if (!this.manifestHasEvents(manifest, bucket, buckets))
                             return Observable.empty();
