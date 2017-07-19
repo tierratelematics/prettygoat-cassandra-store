@@ -13,7 +13,7 @@
     "@types/node": "~6.0.52",
     "@types/socket.io": "~1.4.27",
     "cassandra-driver": "~3.2.0",
-    "inversify": "~3.1.0",
+    "inversify": "~4.1.1",
     "lodash": "~4.13.1",
     "moment": "~2.18.0",
     "reflect-metadata": "0.1.8",
