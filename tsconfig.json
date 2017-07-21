@@ -5,6 +5,11 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "module": "commonjs",
-    "types": ["mocha", "node", "reflect-metadata", "socket.io"]
+    "types": ["mocha", "node", "reflect-metadata", "socket.io"],
+    "baseUrl": ".",
+    "paths": {
+      "prettygoat": ["../prettygoat", "."],
+      "rxjs": ["../prettygoat/node_modules/rxjs", "./node_modules/rxjs"]
+    }
   }
 }
