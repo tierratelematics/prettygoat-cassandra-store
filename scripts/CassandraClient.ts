@@ -9,8 +9,6 @@ import {SpecialEvents} from "prettygoat";
 @injectable()
 class CassandraClient implements ICassandraClient {
     private client: any;
-    private wrappedExecute: any;
-    private wrappedEachRow: any;
 
     constructor(@inject("ICassandraConfig") private config: ICassandraConfig) {
         let authProvider: auth.AuthProvider;
@@ -22,13 +20,10 @@ class CassandraClient implements ICassandraClient {
             keyspace: config.keyspace,
             authProvider: authProvider
         }, config.driverOptions || {}));
-
-        this.wrappedExecute = Observable.bindNodeCallback(this.client.execute, this.client);
-        this.wrappedEachRow = Observable.bindNodeCallback(this.client.eachRow, this.client);
     }
 
     execute(query: IQuery): Observable<any> {
-        return this.wrappedExecute(query[0], query[1], {prepare: !!query[1]}).map(result => result.rows);
+        return Observable.from(this.client.execute(query[0], query[1], {prepare: !!query[1]})).map<any, any>(result => result.rows);
     }
 
     paginate(query: IQuery, completions: Observable<string>): Observable<any> {
@@ -41,7 +36,7 @@ class CassandraClient implements ICassandraClient {
                     .filter(completion => resultPage && resultPage.nextPage)
                     .subscribe(completion => resultPage.nextPage());
 
-            this.wrappedEachRow(query[0], query[1], {prepare: !!query[1], fetchSize: this.config.fetchSize || 5000},
+            this.client.eachRow(query[0], query[1], {prepare: !!query[1], fetchSize: this.config.fetchSize || 5000},
                 (n, row) => observer.next(row),
                 (error, result) => {
                     if (error) observer.error(error);
