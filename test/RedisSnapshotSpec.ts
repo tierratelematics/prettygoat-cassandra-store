@@ -16,19 +16,32 @@ describe("Given a redis snapshot repository", () => {
     });
 
     context("when requesting a snapshot", () => {
-        beforeEach(() => {
-            client.setup(c => c.get("prettygoat-cassandra-store:snapshots:proj1")).returns(() => Promise.resolve(JSON.stringify({
-                memento: {
-                    count: 20
-                },
-                lastEvent: new Date(5000)
-            })));
-        });
-        it("should be loaded", async () => {
-            let snapshot = await subject.getSnapshot("proj1");
+        context("when it's available on redis", () => {
+            beforeEach(() => {
+                client.setup(c => c.get("prettygoat-cassandra-store:snapshots:proj1")).returns(() => Promise.resolve(JSON.stringify({
+                    memento: {
+                        count: 20
+                    },
+                    lastEvent: new Date(5000)
+                })));
+            });
+            it("should be loaded", async () => {
+                let snapshot = await subject.getSnapshot("proj1");
 
-            expect(snapshot).to.eql(new Snapshot({count: 20}, new Date(5000)));
-            expect(snapshot.lastEvent instanceof Date).to.be(true);
+                expect(snapshot).to.eql(new Snapshot({count: 20}, new Date(5000)));
+                expect(snapshot.lastEvent instanceof Date).to.be(true);
+            });
+        });
+
+        context("when it's not available on redis", () => {
+            beforeEach(() => {
+                client.setup(c => c.get("prettygoat-cassandra-store:snapshots:proj1")).returns(() => Promise.resolve(null));
+            });
+            it("should not be loaded", async () => {
+                let snapshot = await subject.getSnapshot("proj1");
+
+                expect(snapshot).not.to.be.ok();
+            });
         });
     });
 

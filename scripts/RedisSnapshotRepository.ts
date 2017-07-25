@@ -13,7 +13,8 @@ class RedisSnapshotRepository implements ISnapshotRepository {
         return this.client.get("prettygoat-cassandra-store:snapshots:" + name)
             .then(snapshot => {
                 let parsed = JSON.parse(snapshot);
-                parsed.lastEvent = new Date(parsed.lastEvent);
+                if (parsed)
+                    parsed.lastEvent = new Date(parsed.lastEvent);
                 return parsed;
             });
     }
