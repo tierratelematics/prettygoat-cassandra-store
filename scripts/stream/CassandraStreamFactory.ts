@@ -37,7 +37,7 @@ class CassandraStreamFactory implements IStreamFactory {
     }
 
     private getManifests(definition: WhenBlock<any>): string[] {
-        return _(definition).keys().filter(key => key !== "$init" && key !== "$any").valueOf();
+        return _(definition).keys().filter(key => key !== "$init").valueOf();
     }
 
     private getBuckets(date: Date, manifests: string[]): Observable<Dictionary<Bucket[]>> {
