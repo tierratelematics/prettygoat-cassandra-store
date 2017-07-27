@@ -1,6 +1,6 @@
 {
   "name": "prettygoat-cassandra-store",
-  "version": "3.0.4",
+  "version": "4.0.0-0",
   "devDependencies": {
     "@types/expect.js": "~0.3.29",
     "@types/mocha": "~2.2.33",
