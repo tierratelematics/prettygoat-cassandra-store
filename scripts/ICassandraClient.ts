@@ -1,4 +1,4 @@
-import {Observable} from "rx";
+import {Observable} from "rxjs";
 
 export interface ICassandraClient {
     execute(query: IQuery): Observable<any>;
