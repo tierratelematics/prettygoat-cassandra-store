@@ -1,10 +1,15 @@
 {
   "compilerOptions": {
     "target": "es5",
-    "lib": ["es5", "es6"],
+    "lib": ["es5", "es6", "dom"],
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "module": "commonjs",
-    "types": ["mocha", "node", "reflect-metadata", "socket.io"]
+    "types": ["mocha", "node", "reflect-metadata", "socket.io"],
+    "baseUrl": ".",
+    "paths": {
+      "prettygoat": ["../prettygoat", "./node_modules/prettygoat"],
+      "rxjs": ["../prettygoat/node_modules/rxjs", "./node_modules/rxjs"]
+    }
   }
 }

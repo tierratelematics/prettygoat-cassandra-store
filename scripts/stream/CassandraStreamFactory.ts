@@ -1,8 +1,8 @@
-import {IStreamFactory, Event, IWhen, IDateRetriever, IEventDeserializer, Dictionary} from "prettygoat";
+import {Observable} from "rxjs";
+import {IStreamFactory, Event, WhenBlock, IDateRetriever, IEventDeserializer, Dictionary} from "prettygoat";
 import {injectable, inject} from "inversify";
 import * as _ from "lodash";
 import {ICassandraClient, IQuery} from "../ICassandraClient";
-import {Observable} from "rx";
 import {mergeSort} from "./MergeSort";
 import * as moment from "moment";
 import ICassandraConfig from "../config/ICassandraConfig";
@@ -18,12 +18,12 @@ class CassandraStreamFactory implements IStreamFactory {
                 @inject("ICassandraConfig") private config: ICassandraConfig) {
     }
 
-    from(lastEvent: Date, completions?: Observable<string>, definition?: IWhen<any>): Observable<Event> {
+    from(lastEvent: Date, completions?: Observable<string>, definition?: WhenBlock<any>): Observable<Event> {
         let manifests = this.getManifests(definition);
         return this.getBuckets(lastEvent, manifests)
             .concatMap(buckets => {
                 let distinctBuckets = _.sortBy(_.uniqWith(_.flatten(_.values(buckets)), _.isEqual), ["entity", "manifest"]);
-                return Observable.from(distinctBuckets).concatMap(bucket => {
+                return Observable.from<Bucket>(distinctBuckets).concatMap<Bucket, any>(bucket => {
                     return mergeSort(_.map(manifests, manifest => {
                         if (!this.manifestHasEvents(manifest, bucket, buckets))
                             return Observable.empty();
@@ -36,13 +36,13 @@ class CassandraStreamFactory implements IStreamFactory {
             });
     }
 
-    private getManifests(definition: IWhen<any>): string[] {
-        return _(definition).keys().filter(key => key !== "$init" && key !== "$any").valueOf();
+    private getManifests(definition: WhenBlock<any>): string[] {
+        return _(definition).keys().filter(key => key !== "$init").valueOf();
     }
 
     private getBuckets(date: Date, manifests: string[]): Observable<Dictionary<Bucket[]>> {
         if (date)
-            return Observable.just(_.fromPairs(_.map(manifests, manifest => [manifest, this.timePartitioner.bucketsFrom(date)])));
+            return Observable.of(_.fromPairs(_.map(manifests, manifest => [manifest, this.timePartitioner.bucketsFrom(date)])));
         return this.client.execute(["select * from bucket_by_manifest", null])
             .map(rows => _.groupBy(rows, "manifest"))
             .map(manifestsWithBuckets => _.mapValues(manifestsWithBuckets, buckets => {

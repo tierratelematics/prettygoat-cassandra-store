@@ -8,8 +8,7 @@ class CassandraDeserializer implements IEventDeserializer {
         return {
             type: row.manifest,
             payload: JSON.parse(row.payload).payload,
-            timestamp: row.timestamp,
-            splitKey: null
+            timestamp: row.timestamp
         };
     }
 }
