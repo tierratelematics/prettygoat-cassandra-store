@@ -8,7 +8,7 @@
     "types": ["mocha", "node", "reflect-metadata", "socket.io"],
     "baseUrl": ".",
     "paths": {
-      "prettygoat": ["../prettygoat", "."],
+      "prettygoat": ["../prettygoat", "./node_modules/prettygoat"],
       "rxjs": ["../prettygoat/node_modules/rxjs", "./node_modules/rxjs"]
     }
   }
