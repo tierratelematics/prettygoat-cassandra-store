@@ -1,3 +1,7 @@
+# 4.0.0
+
+Bump to prettygoat 4.0
+
 # 3.0.4
 
 Memory growth optimizations
