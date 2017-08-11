@@ -58,12 +58,11 @@ class CassandraStreamFactory implements IStreamFactory {
 
     private buildQuery(startDate: Date, bucket: Bucket, manifest: string): IQuery {
         let query = "select payload, timestamp, manifest from event_by_manifest " +
-                "where entity_bucket = :entityBucket and manifest_bucket = :manifestBucket and manifest = :manifest and sequence_nr < :endDate",
+                "where entity_bucket = :entityBucket and manifest_bucket = :manifestBucket and manifest = :manifest",
             params: any = {
                 entityBucket: bucket.entity,
                 manifestBucket: bucket.manifest,
-                manifest: manifest,
-                endDate: moment(this.dateRetriever.getDate()).subtract(this.config.readDelay || 500, "milliseconds").toDate().getTime()
+                manifest: manifest
             };
 
         if (startDate) {

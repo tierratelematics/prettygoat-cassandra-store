@@ -14,7 +14,6 @@ describe("Cassandra stream factory, given a stream factory", () => {
     let timePartitioner: IMock<TimePartitioner>;
     let events: Event[];
     let dateRetriever: IMock<IDateRetriever>;
-    let endDate = new Date(9600);
     let definition: IWhen<any> = {
         $init: () => {},
         Event1: (s, e) => {}
@@ -43,7 +42,7 @@ describe("Cassandra stream factory, given a stream factory", () => {
 
     context("when all the events needs to be fetched", () => {
         beforeEach(() => {
-            setupClient(client, null, endDate);
+            setupClient(client, null);
         });
 
         it("should retrieve the events from the beginning", () => {
@@ -58,7 +57,7 @@ describe("Cassandra stream factory, given a stream factory", () => {
 
     context("when starting the stream from any point", () => {
         beforeEach(() => {
-            setupClient(client, null, endDate);
+            setupClient(client, null);
         });
 
         it("should read the events with a configured delay", () => {
@@ -69,7 +68,6 @@ describe("Cassandra stream factory, given a stream factory", () => {
                 entityBucket: "20170000T000000Z",
                 manifestBucket: "20170629T150000Z",
                 manifest: "Event1",
-                endDate: endDate.getTime()
             }]), It.isAny()), Times.once());
         });
     });
@@ -80,7 +78,7 @@ describe("Cassandra stream factory, given a stream factory", () => {
                 {"entity": "20170000T000000Z", "manifest": "20170629T160000Z"},
                 {"entity": "20180000T000000Z", "manifest": "20180629T160000Z"}
             ]);
-            setupClient(client, new Date(800), endDate);
+            setupClient(client, new Date(800));
         });
 
         it("should retrieve the events in all the buckets greater than that point", () => {
@@ -124,14 +122,13 @@ describe("Cassandra stream factory, given a stream factory", () => {
             }));
     }
 
-    function buildQuery(entityBucket: string, manifestBucket: string, startDate: Date, finalDate: Date): IQuery {
+    function buildQuery(entityBucket: string, manifestBucket: string, startDate: Date): IQuery {
         let query = "select payload, timestamp, manifest from event_by_manifest " +
-                "where entity_bucket = :entityBucket and manifest_bucket = :manifestBucket and manifest = :manifest and sequence_nr < :endDate",
+                "where entity_bucket = :entityBucket and manifest_bucket = :manifestBucket and manifest = :manifest",
             params: any = {
                 entityBucket: entityBucket,
                 manifestBucket: manifestBucket,
-                manifest: "Event1",
-                endDate: finalDate.getTime()
+                manifest: "Event1"
             };
         if (startDate) {
             query += " and sequence_nr > :startDate";
